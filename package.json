@@ -4,8 +4,7 @@
   "description": "Schedules a day's Hive curation votes for one account, weighting and budgeting candidate posts by policy.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/red-cup-engineering/computer-systems-engineering-services-section.git",
-    "directory": "services/computer-blockchain-system-services-section/services/hive-engineering-services-section/services/curation-services-section/services/schedule-set-of-votes-service"
+    "url": "git+https://github.com/red-cup-engineering/schedule-set-of-votes-service.git"
   },
   "type": "module",
   "private": false,
