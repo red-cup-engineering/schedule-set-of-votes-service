@@ -26,12 +26,13 @@ const examples = [
         }
       },
       "account": "emsenn0",
+      "curationWindowSeconds": 0,
       "candidatePosts": [
         {
           "tag": "proofofbrain",
           "symbol": "POB",
           "post": {
-            "author": "alice", "permlink": "p1", "category": "hive-167922", "created": "2026-09-05T00:05:00",
+            "author": "alice", "permlink": "p1", "category": "hive-167922", "created": "2026-09-05T00:10:00",
             "net_rshares": "5000000", "abs_rshares": "5000000", "pending_payout_value": "0.500 HBD", "children": 3,
             "author_reputation": "100000000000", "json_metadata": "{}",
             "active_votes": [{ "voter": "v1", "rshares": "1000000" }, { "voter": "v2", "rshares": "1000000" }, { "voter": "v3", "rshares": "1000000" }, { "voter": "v4", "rshares": "1000000" }, { "voter": "v5", "rshares": "1000000" }]

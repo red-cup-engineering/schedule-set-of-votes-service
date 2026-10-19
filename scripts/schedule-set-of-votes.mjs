@@ -13,7 +13,6 @@ const DEFAULT_POLICY = Object.freeze({
   dustWeight: 100,
   preferredTags: Object.freeze([]),
   neverVoteAuthors: Object.freeze([]),
-  curationWindowSeconds: 300,
   curationWindowToleranceSeconds: 60,
 });
 
@@ -36,6 +35,7 @@ function toBasicUtcDateTime(date) {
  * @param {object} request
  * @param {object} request.yieldReadout A TribeCurationYieldObservationRecord naming this account's votingManabar and each tag's yieldHbdPerMillionRshares.
  * @param {string} request.account The account to schedule votes for; must be a key of request.yieldReadout.accounts.
+ * @param {number} request.curationWindowSeconds Required. The chain's reverse auction window in seconds (HIVE_REVERSE_AUCTION_WINDOW_SECONDS_HF25), read by the caller; the operation holds no literal for it.
  * @param {readonly object[]} request.candidatePosts Posts to consider: {tag, symbol, post}, post a bridge.get_ranked_posts record.
  * @param {object} [request.price] The chain's curation price (hbdPerRshare, percentCurationRewards, votePowerReserveRate), for tags with no observed price.
  * @param {object} [request.policy] Vote policy; see DEFAULT_POLICY for every field and its default.
@@ -48,6 +48,8 @@ export function scheduleSetOfVotes(request) {
   const accountMana = yieldReadout?.accounts?.[account]?.votingManabar;
   if (!accountMana) throw new TypeError(`schedule-set-of-votes: request.account ${account} is not a key of request.yieldReadout.accounts`);
   const policy = { ...DEFAULT_POLICY, ...(request.policy ?? {}) };
+  const curationWindowSeconds = request.curationWindowSeconds;
+  if (!Number.isFinite(curationWindowSeconds) || curationWindowSeconds < 0) throw new TypeError("schedule-set-of-votes: request.curationWindowSeconds is required, the chain's reverse auction window in seconds");
   const nowMs = request.now ? new Date(request.now).getTime() : Date.now();
   const currentManaRaw = BigInt(accountMana.currentManaRaw);
   const manaBudgetRaw = (currentManaRaw * BigInt(policy.dailyManaBudgetPercent)) / 100n;
@@ -65,8 +67,8 @@ export function scheduleSetOfVotes(request) {
     if (!candidates.some((kept) => key(kept.observation) === key(observation))) candidates.push({ ...entry, observation });
   }
   const tagOf = new Map(candidates.map((entry) => [key(entry.observation), entry.tag]));
-  const lower = policy.curationWindowSeconds - policy.curationWindowToleranceSeconds;
-  const upper = policy.curationWindowSeconds + policy.curationWindowToleranceSeconds;
+  const lower = curationWindowSeconds - policy.curationWindowToleranceSeconds;
+  const upper = curationWindowSeconds + policy.curationWindowToleranceSeconds;
   const [dustNum, dustDen] = rationalParts(parseDecimalAmount(policy.dustPendingPayoutThresholdHbd).value);
   const isDust = (observation) => observation.pendingPayoutHbdMicro * dustDen < dustNum * 1_000_000n;
   const priceOf = (observation) => tagPrice.get(tagOf.get(key(observation))) ?? null;
@@ -92,7 +94,7 @@ export function scheduleSetOfVotes(request) {
   });
   const scheduled = selection.votes.map((proposal) => {
     const observation = candidates.find((entry) => key(entry.observation) === proposal.id).observation;
-    const scheduledDate = new Date(nowMs + Math.max(0, policy.curationWindowSeconds - observation.ageSeconds) * 1000);
+    const scheduledDate = new Date(nowMs + Math.max(0, curationWindowSeconds - observation.ageSeconds) * 1000);
     // A vote's scheduled moment is a VEVENT with no RRULE: it occurs exactly once, at DTSTART (RFC 5545 §3.8.5.2).
     return {
       tag: tagOf.get(proposal.id), author: proposal.action.author, permlink: proposal.action.permlink, weight: proposal.action.weightBps,
