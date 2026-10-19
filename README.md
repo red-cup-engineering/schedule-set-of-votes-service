@@ -12,6 +12,7 @@ export function scheduleSetOfVotes(request)
 
 - request (@param {object} request.yieldReadout A TribeCurationYieldObservationRecord naming this account's votingManabar and each tag's yieldHbdPerMillionRshares.
  * @param {string} request.account The account to schedule votes for; must be a key of request.yieldReadout.accounts.
+ * @param {number} request.curationWindowSeconds Required. The chain's reverse auction window in seconds (HIVE_REVERSE_AUCTION_WINDOW_SECONDS_HF25), read by the caller; the operation holds no literal for it.
  * @param {readonly object[]} request.candidatePosts Two-node witnessed posts to consider: {tag,symbol,post,witnesses}.
  * @param {object} [request.price] Two-node observed chain curation price. Its rational hbdPerRshare components may be JSON decimal strings or BigInts.
  * @param {object} [request.policy] Vote policy; see DEFAULT_POLICY for every field and its default.
