@@ -8,7 +8,7 @@
   },
   "type": "module",
   "private": false,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "exports": "./scripts/schedule-set-of-votes.mjs",
   "bin": {
     "schedule-set-of-votes": "scripts/schedule-set-of-votes.mjs"
@@ -32,5 +32,9 @@
   },
   "engines": {
     "node": ">=24.2.0"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
   }
 }
