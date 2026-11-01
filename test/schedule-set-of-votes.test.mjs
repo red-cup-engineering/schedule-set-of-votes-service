@@ -107,3 +107,31 @@ test("refuses when the account is not a key of yieldReadout.accounts", () => {
     /request\.account unknown561 is not a key/u,
   );
 });
+
+test("first-day policy votes immediately without an obsolete five-minute wait", () => {
+  for (const seconds of [30, 43200, 86399]) {
+    const created = new Date(Date.parse(NOW) - seconds * 1000).toISOString().slice(0, -5);
+    const record = scheduleSetOfVotes({
+      yieldReadout: YIELD_READOUT, account: "emsenn0", candidatePosts: [post({ created })],
+      policy: { curationWindowSeconds: 0, curationWindowToleranceSeconds: 86400, maxWeight: 3000, preferredTags: ["proofofbrain"] }, now: NOW,
+    });
+    assert.equal(record.scheduled.length, 1, String(seconds));
+    assert.equal(record.scheduled[0].time, NOW);
+    assert.equal(record.scheduled[0].weight, 3000);
+  }
+});
+
+test("first-day policy keeps the age boundary, history exclusion and cross-tag deduplication", () => {
+  const created = new Date(Date.parse(NOW) - 86401 * 1000).toISOString().slice(0, -5);
+  const record = scheduleSetOfVotes({
+    yieldReadout: YIELD_READOUT, account: "emsenn0",
+    candidatePosts: [
+      post(), post({}, { tag: "hive" }),
+      post({ permlink: "old", created }),
+      post({ permlink: "voted", active_votes: [...post().post.active_votes, { voter: "emsenn0", rshares: "1000000" }] }),
+    ],
+    policy: { curationWindowSeconds: 0, curationWindowToleranceSeconds: 86400 }, now: NOW,
+  });
+  assert.equal(record.scheduled.length, 1);
+  assert.deepEqual(record.refused.map(row => [row.permlink, row.reason]), [["old", "outside-window"], ["voted", "already-voted"]]);
+});
